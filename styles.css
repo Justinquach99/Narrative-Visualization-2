@@ -1,0 +1,45 @@
+.flex-container{
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	justify-content: center;
+}
+
+label {
+    color:black;
+    font-family: Consolas, Baskerville, 'Segoe UI', sans-serif;
+}
+
+.xlabel {
+    color:black;
+    font-family: Consolas, Baskerville, 'Segoe UI', sans-serif;
+}
+
+
+.ylabel {
+    color:black;
+    font-family: Consolas, Baskerville, 'Segoe UI', sans-serif;
+}
+
+.maintitle{
+    color:black;
+    font-family: Consolas, Baskerville, 'Segoe UI', sans-serif;
+}
+
+.annotation-group{
+    color:black;
+    font-family: Consolas, Baskerville, 'Segoe UI', sans-serif;
+}
+
+.tooltip {	
+    position: absolute;			
+    text-align: center;			
+    width: 150px;					
+    height: 60px;					
+    padding: 2px;				
+    font: 12px sans-serif;		
+    background: lightgray;	
+    border: 0px;		
+    border-radius: 8px;			
+    pointer-events: none;			
+}

@@ -1,0 +1,551 @@
+<html>
+<script src='https://d3js.org/d3.v5.min.js'></script>
+<script src='https://cdnjs.cloudflare.com/ajax/libs/d3-annotation/2.5.1/d3-annotation.min.js'></script>
+<style> rect {fill: lightblue; stroke: black; }</style>
+<head>
+  <link rel="stylesheet" href="styles.css">
+</head>
+
+<body onload='init()'>
+<div class = "flex-container">
+	<div>
+		<strong><br> <label for="annotationLine">================</label></strong>
+		<strong><br> <label for="annotationBox">Annotations</label></strong>
+		<strong><br> <label for="annotationLine">================</label></strong><br>
+		<button type="button" name="backButton" class="backButton" id="backButton">Back</button>
+		<button type="button" name="nextButton" class="nextButton" id="nextButton">Next</button>
+		<label for="hide">Hide Annotations</label>
+			<input type="checkbox" class = "checkboxClass" name="hide" id="hide"><br>
+		<div>
+			<strong><br> <label for="diseaseLine">================</label></strong>
+			<strong><br> <label for="diseaseBox">List of Diseases</label></strong>
+			<strong><br> <label for="diseaseLine">================</label></strong><br>
+			<label for="Septicemia">Septicemia</label>
+			<input type="checkbox" class = "checkboxClass" name="Septicemia"  id="Septicemia"><br>
+			<label for="Malignant">Malignant Neoplasms</label>
+			<input type="checkbox" class = "checkboxClass" name="Malignant"  id="Malignant"><br>
+			<label for="Diabetes">Diabetes</label>
+			<input type="checkbox" class = "checkboxClass" name="Diabetes"  id="Diabetes"><br>
+			<label for="Alzheimer">Alzheimer</label>
+			<input type="checkbox" class = "checkboxClass" name="Alzheimer"  id="Alzheimer"><br>
+			<label for="Influenza">Influenza and Pneumonia</label>
+			<input type="checkbox" class = "checkboxClass" name="Influenza"  id="Influenza"><br>
+			<label for="Chronic">Chronic Illnesses</label>
+			<input type="checkbox" class = "checkboxClass" name="Chronic Illnesses"  id="Chronic"><br>
+			<label for="Other">Other Diseases</label>
+			<input type="checkbox" class = "checkboxClass" name="Other Diseases"  id="Other"><br>
+			<label for="Nephritis">Nephritis, Nephrotic Syndrome and Nephrosis</label>
+			<input type="checkbox" class = "checkboxClass" name="Nephritis"  id="Nephritis"><br>
+			<label for="Symptoms">Symptoms and Signs From Laboratory</label>
+			<input type="checkbox" class = "checkboxClass" name="Symptoms"  id="Symptoms"><br>
+			<label for="Diseases">Heart Diseases</label>
+			<input type="checkbox" class = "checkboxClass" name="Heart Diseases"  id="Diseases"><br>
+			<label for="Cerebrovascular">Cerebrovascular</label>
+			<input type="checkbox" class = "checkboxClass" name="Cerebrovascular"  id="Cerebrovascular"><br>
+			<label for="COVID-19 (Multiple Cause of Death)">COVID-19 (Multiple Cause of Death)</label>
+			<input type="checkbox" class = "checkboxClass" name="COVID-19 (Multiple Cause of Death)"  id="COVID-19 (Multiple Cause of Death)"><br>
+			<label for="COVID-19 (Underlying Cause of Death)">COVID-19 (Underlying Cause of Death)</label>
+			<input type="checkbox" class = "checkboxClass" name="COVID-19 (Underlying Cause of Death)"  id="COVID-19 (Underlying Cause of Death)"><br>
+		</div>
+		<strong><br> <label for="stateLine">================</label></strong>
+		<strong><br> <label for="stateBox">List of States</label></strong>
+		<strong><br> <label for="stateLine">================</label></strong><br>
+		<select id="selectButtonStates"></select>
+	</div>
+	<svg width=1000 height=1000>
+	</svg>
+</div>
+<script>
+	//Load data
+async function init() {
+	const data_url = "https://raw.githubusercontent.com/Justinquach99/Narrative-Visualization-2/narrative/clean_data.csv";
+	var data = await d3.csv(data_url);
+
+	//Setting up margins
+	var margin = 50;
+	var width = 750;
+	var height = 750;
+	
+	//Parse date to desired format
+	var parseTime = d3.timeParse("%m/%d/%Y");
+	data.forEach(function (d) {
+		d.Week = parseTime(d.Week);
+	});
+	
+	//Setting up axes
+	var x = d3.scaleTime().range([0,width]);
+	var y = d3.scaleLinear().domain([0, 50000]).range([height, 0]);
+
+	x.domain(d3.extent(data, function(d) { return d.Week; }));
+
+	var x_axis = d3.axisBottom(x); 
+	var y_axis = d3.axisLeft(y)
+			.tickValues([0, 5000, 10000, 15000, 20000, 25000, 30000, 35000, 40000, 45000, 50000])
+			.tickFormat((d, i) => ([0, 5000, 10000, 15000, 20000, 25000, 30000, 35000, 40000, 45000, 50000])[i]); 
+	
+	d3.select("svg").append("g")
+			   .attr("transform", "translate("+margin+","+margin+")")
+			   .call(y_axis);
+			  
+	d3.select("svg").append("g")
+			   .attr("transform", "translate(50,800)")
+			   .call(x_axis);
+	
+	//Label x-axis
+	d3.select("svg").append("text")
+		.attr("class", "xlabel")
+		.attr("text-anchor", "end")
+		.attr("x", width - 290)
+		.attr("y", height + 95)
+		.text("Dates");
+	
+	//Label y-axis
+	d3.select("svg").append("text")
+		.attr("class", "ylabel")
+		.attr("text-anchor", "end")
+		.attr("x", width - 645)
+		.attr("y", height - 710)
+		.text("Total Deaths");
+	
+	//Label Plot title
+	d3.select("svg").append("text")
+		.attr("class", "maintitle")
+		.attr("text-anchor", "end")
+		.attr("x", width - 140)
+		.attr("y", height - 730)
+		.style("font-size", "24px")
+		.text("Amount of Deaths Overtime");
+	
+	//Create tooltip
+	var tooltip = d3.select("body").append("div")	
+		.attr("class", "tooltip")				
+		.style("opacity", 0);
+	
+	//Change date within tooltip to show without timestamp
+	var formatTime = d3.timeFormat("%m/%d/%Y");
+	formatTime(new Date);
+	
+	var selectedColumnFilters = new Set();
+	var selectedOption = "United States";
+
+	///////////////////////////////////////////////////
+	
+	//Create annotations
+	var type = d3.annotationLabel;
+	
+	var annotations = [
+	  {
+		note: { label: "Many people have died from diseases and other chronic illnesses. This scatterplot captures data on a week-to-week basis.  " },
+		x: 450,
+		y: 500,
+		subject: { radius: 55, radiusPadding: 15 },
+	  },
+	];
+	
+	const makeAnnotations = d3.annotation()
+	  .editMode(false)
+	  .notePadding(5)
+	  .type(type)
+	  .accessors({
+		x: d => x(parseTime(d.Week)),
+		y: d => y(d.Deaths)
+	  })
+	  .accessorsInverse({
+		 week: d => timeFormat(x.invert(d.x)),
+		 deaths: d => y.invert(d.y)
+	  })
+	  .annotations(annotations)
+
+	var createAnnotations = d3.select("svg")
+	  .append("g")
+	  .attr("class", "annotation-group")
+	  .call(makeAnnotations)
+	
+	///////////////////////////////////////////////////
+	
+	var annotations2 = [
+	  {
+		note: { label: "The data captured was from January 4th, 2020 to July 9th, 2022. " },
+		x: 420,
+		y: 800,
+		dy: -157,
+		dx: 82,
+		subject: { radius: 50, radiusPadding: 10 },
+	  },
+	];
+	
+	const makeAnnotations2 = d3.annotation()
+	  .editMode(false)
+	  .notePadding(5)
+	  .type(type)
+	  .accessors({
+		x: d => x(parseTime(d.Week)),
+		y: d => y(d.Deaths)
+	  })
+	  .accessorsInverse({
+		 week: d => timeFormat(x.invert(d.x)),
+		 deaths: d => y.invert(d.y)
+	  })
+	  .annotations(annotations2)
+	
+	var createAnnotations2 = d3.select("svg")
+	  .append("g")
+	  .attr("class", "annotation-group")
+	  .call(makeAnnotations2)
+	  
+	
+	///////////////////////////////////////////////////
+	
+	var annotations3 = [
+	  {
+		note: { label: "Select the diseases on the left-hand side. " },
+		x: 150,
+		y: 500,
+		subject: { width: -50, height: 100 },
+	  },
+	];
+	
+	const makeAnnotations3 = d3.annotation()
+	  .editMode(false)
+	  .notePadding(5)
+	  .type(type)
+	  .accessors({
+		x: d => x(parseTime(d.Week)),
+		y: d => y(d.Deaths)
+	  })
+	  .accessorsInverse({
+		 week: d => timeFormat(x.invert(d.x)),
+		 deaths: d => y.invert(d.y)
+	  })
+	  .annotations(annotations3)
+	
+	var createAnnotations3 = d3.select("svg")
+	  .append("g")
+	  .attr("class", "annotation-group")
+	  .call(makeAnnotations3)
+	
+	///////////////////////////////////////////////////
+	
+	var annotations4 = [
+	  {
+		note: { label: "You can also choose the state to view special data for. " },
+		x: 150,
+		y: 670,
+		subject: { width: -50, height: 100 },
+	  },
+	];
+	
+	const makeAnnotations4 = d3.annotation()
+	  .editMode(false)
+	  .notePadding(5)
+	  .type(type)
+	  .accessors({
+		x: d => x(parseTime(d.Week)),
+		y: d => y(d.Deaths)
+	  })
+	  .accessorsInverse({
+		 week: d => timeFormat(x.invert(d.x)),
+		 deaths: d => y.invert(d.y)
+	  })
+	  .annotations(annotations4)
+	
+	var createAnnotations4 = d3.select("svg")
+	  .append("g")
+	  .attr("class", "annotation-group")
+	  .call(makeAnnotations4)
+	
+	///////////////////////////////////////////////////
+	
+	var annotations5 = [
+	  {
+		note: { label: "Deaths are represented additively (for example, if you choose Septicemia and Diabetes, the values will be added together). " },
+		x: 50,
+		y: 520,
+		dy: 0,
+		dx: 100,
+	  },
+	];
+	
+	const makeAnnotations5 = d3.annotation()
+	  .editMode(false)
+	  .notePadding(5)
+	  .type(type)
+	  .accessors({
+		x: d => x(parseTime(d.Week)),
+		y: d => y(d.Deaths)
+	  })
+	  .accessorsInverse({
+		 week: d => timeFormat(x.invert(d.x)),
+		 deaths: d => y.invert(d.y)
+	  })
+	  .annotations(annotations5)
+	
+	var createAnnotations5 = d3.select("svg")
+	  .append("g")
+	  .attr("class", "annotation-group")
+	  .call(makeAnnotations5)
+	
+	///////////////////////////////////////////////////
+	
+	var annotations6 = [
+	  {
+		note: { label: "Highlight over a data point to reveal more information about the state, date, and total deaths. " },
+		x: 450,
+		y: 350,
+	  },
+	];
+	
+	const makeAnnotations6 = d3.annotation()
+	  .editMode(false)
+	  .notePadding(5)
+	  .type(type)
+	  .accessors({
+		x: d => x(parseTime(d.Week)),
+		y: d => y(d.Deaths)
+	  })
+	  .accessorsInverse({
+		 week: d => timeFormat(x.invert(d.x)),
+		 deaths: d => y.invert(d.y)
+	  })
+	  .annotations(annotations6)
+	
+	var createAnnotations6 = d3.select("svg")
+	  .append("g")
+	  .attr("class", "annotation-group")
+	  .call(makeAnnotations6)
+	
+	///////////////////////////////////////////////////
+	
+	var annotations7 = [
+	  {
+		note: { label: "Feel free to explore this data set! You can begin looking by clicking 'next' again to close the ending annotation, or clicking 'back' to review the annotations again. " },
+		x: 450,
+		y: 350,
+	  },
+	];
+	
+	const makeAnnotations7 = d3.annotation()
+	  .editMode(false)
+	  .notePadding(5)
+	  .type(type)
+	  .accessors({
+		x: d => x(parseTime(d.Week)),
+		y: d => y(d.Deaths)
+	  })
+	  .accessorsInverse({
+		 week: d => timeFormat(x.invert(d.x)),
+		 deaths: d => y.invert(d.y)
+	  })
+	  .annotations(annotations7)
+	
+	var createAnnotations7 = d3.select("svg")
+	  .append("g")
+	  .attr("class", "annotation-group")
+	  .call(makeAnnotations7)
+	
+	///////////////////////////////////////////////////
+	
+	//Select annotation options
+	var annotationArray = [createAnnotations, createAnnotations2, createAnnotations3, createAnnotations4, createAnnotations5, createAnnotations6, createAnnotations7];
+		annotationArray[0].style("opacity", 1);
+		annotationArray[1].style("opacity", 0);
+		annotationArray[2].style("opacity", 0);
+		annotationArray[3].style("opacity", 0);
+		annotationArray[4].style("opacity", 0);
+		annotationArray[5].style("opacity", 0);
+		annotationArray[6].style("opacity", 0);
+		var buttonCounter = 0;
+		
+	//Select next button to view the next annotation on the list
+		d3.select("#nextButton").on("mouseup", function() { 
+		if(buttonCounter == 0) {
+				annotationArray[0].transition().duration(500).style("opacity", 0), annotationArray[1].transition().duration(500).style("opacity", 1)
+				buttonCounter = buttonCounter + 1;  return buttonCounter;	}
+		if(buttonCounter == 1) {
+				annotationArray[1].transition().duration(500).style("opacity", 0), annotationArray[2].transition().duration(500).style("opacity", 1)
+				buttonCounter = buttonCounter + 1;	return buttonCounter;	}
+		if(buttonCounter == 2) {
+				annotationArray[2].transition().duration(500).style("opacity", 0), annotationArray[3].transition().duration(500).style("opacity", 1)
+				buttonCounter = buttonCounter + 1;	return buttonCounter;	}
+		if(buttonCounter == 3) {
+				annotationArray[3].transition().duration(500).style("opacity", 0), annotationArray[4].transition().duration(500).style("opacity", 1)
+				buttonCounter = buttonCounter + 1;	return buttonCounter;	}		
+		if(buttonCounter == 4) {
+				annotationArray[4].transition().duration(500).style("opacity", 0), annotationArray[5].transition().duration(500).style("opacity", 1)
+				buttonCounter = buttonCounter + 1;	return buttonCounter;	}
+		if(buttonCounter == 5) {
+				annotationArray[5].transition().duration(500).style("opacity", 0), annotationArray[6].transition().duration(500).style("opacity", 1)
+				buttonCounter = buttonCounter + 1;	return buttonCounter;	}		
+		if(buttonCounter == 6) {
+				annotationArray[6].transition().duration(500).style("opacity", 0); return buttonCounter;	}				
+			})
+		
+	//Select back button to view the previous annotation on the list		
+		d3.select("#backButton").on("mouseup", function() {	
+		if(buttonCounter == 0) {
+				buttonCounter = buttonCounter; return buttonCounter; }
+		if(buttonCounter == 1) {
+				annotationArray[0].transition().duration(500).style("opacity", 1), annotationArray[1].transition().duration(500).style("opacity", 0)
+				buttonCounter = buttonCounter - 1;	return buttonCounter;	}			
+		if(buttonCounter == 2) {
+				annotationArray[1].transition().duration(500).style("opacity", 1), annotationArray[2].transition().duration(500).style("opacity", 0)
+				buttonCounter = buttonCounter - 1;	return buttonCounter;	}	
+		if(buttonCounter == 3) {
+				annotationArray[2].transition().duration(500).style("opacity", 1), annotationArray[3].transition().duration(500).style("opacity", 0)
+				buttonCounter = buttonCounter - 1;	return buttonCounter;	}
+		if(buttonCounter == 4) {
+				annotationArray[3].transition().duration(500).style("opacity", 1), annotationArray[4].transition().duration(500).style("opacity", 0)
+				buttonCounter = buttonCounter - 1;	return buttonCounter;	}
+		if(buttonCounter == 5) {
+				annotationArray[4].transition().duration(500).style("opacity", 1), annotationArray[5].transition().duration(500).style("opacity", 0)
+				buttonCounter = buttonCounter - 1;	return buttonCounter;	}		
+		if(buttonCounter == 6) {
+				annotationArray[5].transition().duration(500).style("opacity", 1), annotationArray[6].transition().duration(500).style("opacity", 0)
+				buttonCounter = buttonCounter - 1;	return buttonCounter;	}					
+		})		 
+		
+		//Toggle annotations
+		var toggle = true;		 
+		d3.select("#hide").on("mouseup", function() {
+			annotationArray[0].transition().duration(500).style("visibility", toggle ? "hidden" : "visible");
+			annotationArray[1].transition().duration(500).style("visibility", toggle ? "hidden" : "visible");
+			annotationArray[2].transition().duration(500).style("visibility", toggle ? "hidden" : "visible");
+			annotationArray[3].transition().duration(500).style("visibility", toggle ? "hidden" : "visible");
+			annotationArray[4].transition().duration(500).style("visibility", toggle ? "hidden" : "visible");
+			annotationArray[5].transition().duration(500).style("visibility", toggle ? "hidden" : "visible");
+			annotationArray[6].transition().duration(500).style("visibility", toggle ? "hidden" : "visible");
+			toggle = !toggle;
+		})
+	
+	///////////////////////////////////////////////////
+	
+	
+	//Initialize scatterplot
+	function createScatterplot(data) {
+		data.forEach(function (d) {
+			let count = 0;
+			for (let columnName of selectedColumnFilters) {
+				if (d[columnName] == null || d[columnName] == "NA") {
+					continue;
+				}
+				let parsedNum = parseInt(d[columnName]) || 0;
+
+				count += parsedNum
+			}
+			d.Deaths = count;
+		});
+		
+		return d3.select("svg").append("g")
+			.attr("transform", "translate("+margin+","+margin+")")
+			.selectAll('circle')
+			  .data(data)
+			  .enter()
+			.append('circle')
+			  .attr('cx',function (d) { return x(d.Week) })
+			  .attr('cy',function (d) {
+				return y(d.Deaths);
+			  })
+			  .attr('r',function (d) { return 1.5})
+			  .attr('stroke', 'black')
+			  .attr('stroke-width', 1)
+			  .on('mouseover', function (d) {
+			    //Tooltip Box
+				tooltip.transition()		
+                .duration(500)		
+                .style("opacity", .9);	
+				
+				//Enlarging circle
+				d3.select(this)
+				.transition()		
+                .duration(500)		
+				.attr('r',function (d) { return 10})
+			    .attr('stroke', 'black')
+			    .attr('stroke-width', 1);
+				
+				//Tooltip Information
+				 tooltip.html("<strong>Date: </strong>" + formatTime(d.Week) + "<strong><br>State: </strong>" + d.Jurisdiction + "<strong><br>Number of Deaths: </strong>" + d.Deaths)	
+                .style("left", (d3.event.pageX + 8) + "px")		
+                .style("top", (d3.event.pageY - 32) + "px");	
+		
+			  })
+				//Revert all transitions to original state
+			  .on('mouseout', function () {
+				tooltip.transition()		
+                .duration(500)		
+                .style("opacity", 0);	
+				
+				d3.select(this)
+				.transition()		
+                .duration(500)		
+				.attr('r',function (d) { return 1.5})
+			    .attr('stroke','black')
+			    .attr('stroke-width',1);
+			  })
+	  }
+	  
+		
+	var scatterplot = createScatterplot(data);
+	
+	///////////////////////////////////////////////////
+	
+	//Update scatterplot
+    function update() {
+	  var dataFilter;
+	  if (selectedOption === "United States") {
+		dataFilter = data;
+	  } else {
+		dataFilter = data.filter(function(d){ 
+			return d.Jurisdiction == selectedOption
+		});
+	  }	
+	  d3.selectAll("circle").remove();
+	  createScatterplot(dataFilter);
+	  
+	}
+	
+	///////////////////////////////////////////////////
+	
+	//Check for user input with checkboxes
+	d3.selectAll("input").property('checked', false);
+	
+    d3.selectAll("input").on("change", function(d) {
+	    var selectedCheckbox = d3.select(this).property("name");
+		if (d3.select(this).property("checked")) {
+			console.log(selectedCheckbox);
+			selectedColumnFilters.add(selectedCheckbox);
+		} else {
+			console.log(`Unselected ${selectedCheckbox}`);
+			if (selectedColumnFilters.has(selectedCheckbox)) {
+				selectedColumnFilters.delete(selectedCheckbox);
+			}
+		}
+		update();
+		console.log(selectedColumnFilters);
+    })
+	
+	///////////////////////////////////////////////////
+	
+	//Drop-down menu for states
+	d3.select("#selectButtonStates")
+      .selectAll('option')
+      .data(d3.map(data, function(d) {return d.Jurisdiction;}).keys())
+      .enter()
+      .append('option')
+      .text(function (d) { return d; })
+      .attr("value", function (d) { 
+			return d;
+	  })
+	
+	///////////////////////////////////////////////////
+	
+	//Change data on plot when user chooses another state
+    d3.select("#selectButtonStates").on("change", function(d) {
+        selectedOption = d3.select(this).property("value")
+        update();
+    })
+
+}
+
+</script>
+</body>
+</html>
